@@ -26,10 +26,10 @@ export default function PostsCRUD() {
   const handleCreate = (data) => {
     createPost(data)
       .then((res) => {
+        const maxId = posts.length > 0 ? Math.max(...posts.map((p) => p.id)) : 0;
         const newPost = {
           ...res.data,
-          // avoid duplicate key: use timestamp-based unique id
-          id: Date.now(),
+          id: maxId + 1,
           title: data.title,
           body: data.body,
         };
