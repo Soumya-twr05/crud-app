@@ -21,3 +21,15 @@ A React app that performs full CRUD operations against the [JSONPlaceholder](htt
 npm install
 npm run dev
 ```
+
+## Vercel Deployment
+
+Add these environment variables in your Vercel project settings (Settings → Environment Variables):
+
+```
+VITE_API_BASE_URL=https://jsonplaceholder.typicode.com
+VITE_POSTS_LIMIT=10
+```
+
+> Vite env vars must be prefixed with `VITE_` and accessed via `import.meta.env.VITE_*`.
+> The `.env` file is not pushed to git — set variables directly in Vercel dashboard.

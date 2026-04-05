@@ -6,36 +6,71 @@ import PostTable from "./PostTable";
 export default function PostsCRUD() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [editPost, setEditPost] = useState(null);
 
-  // GET
+  // GET — with error handling
   useEffect(() => {
     getPosts()
-      .then((res) => setPosts(res.data))
+      .then((res) => {
+        setPosts(res.data);
+      })
+      .catch((err) => {
+        console.error("GET failed:", err);
+        setError("Failed to load posts. Please check your connection.");
+      })
       .finally(() => setLoading(false));
   }, []);
 
-  // POST
+  // POST — JSONPlaceholder always returns id:101, so generate a unique local id
   const handleCreate = (data) => {
-    createPost(data).then((res) => {
-      setPosts([{ ...res.data, id: posts.length + 1 }, ...posts]);
-    });
+    createPost(data)
+      .then((res) => {
+        const newPost = {
+          ...res.data,
+          // avoid duplicate key: use timestamp-based unique id
+          id: Date.now(),
+          title: data.title,
+          body: data.body,
+        };
+        setPosts((prev) => [newPost, ...prev]);
+      })
+      .catch((err) => {
+        console.error("POST failed:", err);
+        alert("Failed to create post.");
+      });
   };
 
-  // PUT
+  // PUT — merge response with local data since JSONPlaceholder doesn't persist
   const handleUpdate = (data) => {
-    updatePost(editPost.id, data).then((res) => {
-      setPosts(posts.map((p) => (p.id === editPost.id ? { ...res.data, id: editPost.id } : p)));
-      setEditPost(null);
-    });
+    updatePost(editPost.id, data)
+      .then(() => {
+        setPosts((prev) =>
+          prev.map((p) =>
+            p.id === editPost.id ? { ...p, title: data.title, body: data.body } : p
+          )
+        );
+        setEditPost(null);
+      })
+      .catch((err) => {
+        console.error("PUT failed:", err);
+        alert("Failed to update post.");
+      });
   };
 
   // DELETE
   const handleDelete = (id) => {
-    deletePost(id).then(() => {
-      setPosts(posts.filter((p) => p.id !== id));
-    });
+    deletePost(id)
+      .then(() => {
+        setPosts((prev) => prev.filter((p) => p.id !== id));
+      })
+      .catch((err) => {
+        console.error("DELETE failed:", err);
+        alert("Failed to delete post.");
+      });
   };
+
+  if (error) return <p className="error-msg">{error}</p>;
 
   return (
     <div>
